@@ -1,4 +1,5 @@
 namespace Models;
-public class Settings{
+public class Settings
+{
     public string FilePath { get; set; }
 }

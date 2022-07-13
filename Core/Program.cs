@@ -1,18 +1,21 @@
 ﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Models;
 
 using IHost host = Host.CreateDefaultBuilder(args)
-    .ConfigureAppConfiguration((hostingContext, configuration) => {
+    .ConfigureAppConfiguration((hostingContext, configuration) =>
+    {
         configuration.Sources.Clear();
         var env = hostingContext.HostingEnvironment;
         configuration
             .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
             .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
-        var configurationRoot = configuration.Build();
-        Settings settings = new();
-        configurationRoot.GetSection(nameof(Settings)).Bind(settings);        
+    })
+    .ConfigureServices((context, services) =>
+    {
+        var configurationRoot = context.Configuration;
+        services.Configure<Settings>(configurationRoot.GetSection(nameof(Settings)));
     })
     .Build();
 
