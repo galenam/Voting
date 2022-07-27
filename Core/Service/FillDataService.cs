@@ -14,8 +14,9 @@ public class FillDataService : IFillDataService
         _settings = options.Value;
     }
 
-    public void FillDb()
+    public async Task<bool> FillDb()
     {
-        _logger.LogError(123, "error message");
+        //_logger.LogError(123, "error message");
+        return true;
     }
 }

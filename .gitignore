@@ -4,4 +4,5 @@
 appsettings.Development.json
 /core/data/*
 /.vscode/*
-Core/appsettings..Development.json
+Core/appsettings.Development.json
+/logs/*

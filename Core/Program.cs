@@ -5,14 +5,16 @@ using Models;
 using Serilog;
 using Service;
 
-Log.Logger = new LoggerConfiguration()
-  .MinimumLevel.Verbose()
-  .WriteTo.File("log.txt",
-    outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
-  .CreateLogger();
-Log.Information("Hello, Serilog!");
-using IHost host = Host.CreateDefaultBuilder(args)
-.ConfigureLogging(tmp => tmp.AddSerilog())
+using IHost host = Host.CreateDefaultBuilder(args)/*
+    .ConfigureLogging((context, logBuilder) =>
+    {
+        var logger = new LoggerConfiguration()
+          //.WriteTo.File("log.txt",
+            //outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")            
+          .ReadFrom.Configuration(context.Configuration)
+          .CreateLogger();
+        logBuilder.AddSerilog(logger, true);
+    })*/
     .ConfigureAppConfiguration((hostingContext, configuration) =>
     {
         configuration.Sources.Clear();
@@ -31,12 +33,14 @@ using IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IFillDataService, FillDataService>();
 
     })
+    .UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
+                    .ReadFrom.Configuration(context.Configuration)
+                    .Enrich.FromLogContext())
     .Build();
 
 using IServiceScope serviceScope = host.Services.CreateScope();
 var provider = serviceScope.ServiceProvider;
 var fService = provider.GetRequiredService<IFillDataService>();
 fService.FillDb();
-Log.CloseAndFlush();
 //await host.RunAsync();
 
