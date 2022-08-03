@@ -1,8 +1,9 @@
 */obj/*
 */Properties/*
 */bin/*
-appsettings.Development.json
 /core/data/*
 /.vscode/*
 Core/appsettings.Development.json
 /logs/*
+*/.vs/*
+/.vs/*

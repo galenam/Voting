@@ -1,4 +1,4 @@
-namespace Service;
+namespace Services;
 
 public interface IFillDataService
 {

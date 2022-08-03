@@ -3,18 +3,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Models;
 using Serilog;
-using Service;
+using Services;
 
-using IHost host = Host.CreateDefaultBuilder(args)/*
-    .ConfigureLogging((context, logBuilder) =>
-    {
-        var logger = new LoggerConfiguration()
-          //.WriteTo.File("log.txt",
-            //outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")            
-          .ReadFrom.Configuration(context.Configuration)
-          .CreateLogger();
-        logBuilder.AddSerilog(logger, true);
-    })*/
+using IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((hostingContext, configuration) =>
     {
         configuration.Sources.Clear();
@@ -31,6 +22,9 @@ using IHost host = Host.CreateDefaultBuilder(args)/*
     {
         var configurationRoot = context.Configuration;
         services.AddSingleton<IFillDataService, FillDataService>();
+        services.AddSingleton<IGetDataFromSourceService, GetDataFromSourceService>();
+        services.AddOptions<Settings>()
+            .Bind(configurationRoot.GetSection(nameof(Settings)));
 
     })
     .UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
@@ -41,6 +35,6 @@ using IHost host = Host.CreateDefaultBuilder(args)/*
 using IServiceScope serviceScope = host.Services.CreateScope();
 var provider = serviceScope.ServiceProvider;
 var fService = provider.GetRequiredService<IFillDataService>();
-fService.FillDb();
+await fService.FillDb();
 //await host.RunAsync();
 
