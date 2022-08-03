@@ -14,7 +14,7 @@ public static class Helper
         {
             if (int.TryParse(range, out int value))
             {
-                result.Add(value);
+                result.Add(value - 1);
                 return result;
             }
         }
