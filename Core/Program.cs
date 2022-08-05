@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Models;
@@ -25,6 +26,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IGetDataFromSourceService, GetDataFromSourceService>();
         services.AddOptions<Settings>()
             .Bind(configurationRoot.GetSection(nameof(Settings)));
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
     })
     .UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
