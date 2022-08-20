@@ -1,4 +1,3 @@
-using System.Drawing;
 using ExcelDataReader;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -131,7 +130,7 @@ public class OwnerNameHandler : BaseHandler
 public class VotingHandler : BaseHandler
 {
     private int _end;
-    public VotingHandler(IHandler? handler, int index, int end): base(handler, index)
+    public VotingHandler(IHandler? handler, int index, int end) : base(handler, index)
     {
         _end = end;
     }
@@ -147,7 +146,8 @@ public class VotingHandler : BaseHandler
                 break;
             }
         }
-        if (found > 0) {
+        if (found > 0)
+        {
             current.Vote = initial.Vote = (VoteType)found;
         }
     }
