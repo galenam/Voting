@@ -3,6 +3,7 @@
 */bin/*
 /core/data/source.pdf
 /core/data/file.xlsx
+/core/data/tiff/*
 /.vscode/*
 Core/appsettings.Development.json
 /logs/*

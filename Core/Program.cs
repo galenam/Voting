@@ -5,6 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Models;
 using Serilog;
 using Services;
+using Tesseract;
 
 using IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureAppConfiguration((hostingContext, configuration) =>
@@ -24,6 +25,8 @@ using IHost host = Host.CreateDefaultBuilder(args)
         var configurationRoot = context.Configuration;
         services.AddSingleton<IFillDataService, FillDataService>();
         services.AddSingleton<IGetDataFromSourceService, GetDataFromSourceService>();
+        var engine = new TesseractEngine(@"./data", "rus", EngineMode.Default);
+        services.AddSingleton<TesseractEngine>(engine);
         services.AddOptions<Settings>()
             .Bind(configurationRoot.GetSection(nameof(Settings)));
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
