@@ -24,8 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="source.pdf">
+    <None Include="data\*">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    </ItemGroup>
+  </ItemGroup>
 </Project>

@@ -1,7 +1,8 @@
 */obj/*
 */Properties/*
 */bin/*
-/core/data/*
+/core/data/source.pdf
+/core/data/file.xlsx
 /.vscode/*
 Core/appsettings.Development.json
 /logs/*
