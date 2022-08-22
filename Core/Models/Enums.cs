@@ -12,3 +12,9 @@ public enum VoteType
     Against,
     Abstain
 }
+
+public enum LivingQuater
+{
+    Living,
+    NonLiving
+}

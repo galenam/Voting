@@ -4,5 +4,5 @@ namespace Services;
 
 public interface IGetDataFromSourceService
 {
-    Task<IEnumerable<OwnerVoting>> Get();
+    IEnumerable<OwnerVoting> Get();
 }

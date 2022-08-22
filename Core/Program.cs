@@ -1,7 +1,9 @@
 ﻿using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.ObjectPool;
 using Models;
 using Serilog;
 using Services;
@@ -27,6 +29,15 @@ using IHost host = Host.CreateDefaultBuilder(args)
         services.AddSingleton<IGetDataFromSourceService, GetDataFromSourceService>();
         var engine = new TesseractEngine(@"./data", "rus", EngineMode.Default);
         services.AddSingleton<TesseractEngine>(engine);
+        services.TryAddSingleton<ObjectPoolProvider, DefaultObjectPoolProvider>();
+
+        services.TryAddSingleton<ObjectPool<StringBuilder>>(serviceProvider =>
+        {
+            var provider = serviceProvider.GetRequiredService<ObjectPoolProvider>();
+            var policy = new StringBuilderPooledObjectPolicy();
+            return provider.Create(policy);
+        });
+
         services.AddOptions<Settings>()
             .Bind(configurationRoot.GetSection(nameof(Settings)));
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

@@ -1,159 +1,92 @@
+using System.Text;
 using ExcelDataReader;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
 using Models;
+using Tesseract;
+
 namespace Services;
 public class GetDataFromSourceService : IGetDataFromSourceService
 {
     private ILogger<GetDataFromSourceService> _logger;
     private Settings _settings;
-    public GetDataFromSourceService(ILogger<GetDataFromSourceService> logger, IOptions<Settings> options)
+
+    private readonly TesseractEngine _engine;
+    private ObjectPool<StringBuilder> _builderPool;
+
+    public GetDataFromSourceService(ILogger<GetDataFromSourceService> logger, IOptions<Settings> options,
+        TesseractEngine engine, ObjectPool<StringBuilder> builderPool)
     {
         _logger = logger;
         _settings = options.Value;
+        _engine = engine;
+        _builderPool = builderPool;
     }
 
-    public async Task<IEnumerable<OwnerVoting>> Get()
+    ~GetDataFromSourceService()
     {
-        var owners = new List<OwnerVoting>();
+        _engine.Dispose();
+    }
+
+    public IEnumerable<OwnerVoting> Get()
+    {
         try
         {
-            using (var stream = File.Open($"{Directory.GetCurrentDirectory()}{_settings.FilePathXslx}", FileMode.Open, FileAccess.Read))
+            var testImagePath = _settings.FilePathTiff;
+            _logger.LogDebug($"path to the file: {testImagePath}");
+
+            using (var img = Pix.LoadFromFile(testImagePath))
             {
-                using (var reader = ExcelReaderFactory.CreateReader(stream, new ExcelReaderConfiguration { FallbackEncoding = System.Text.Encoding.ASCII }))
+                using (var page = _engine.Process(img))
                 {
-                    var initial = new OwnerVoting();
-                    do
+                    _logger.LogDebug("Mean confidence: {0}", page.GetMeanConfidence());
+                    _logger.LogDebug("Text (iterator):");
+                    using (var iter = page.GetIterator())
                     {
-                        reader.Read();
-                        reader.Read();
-                        while (reader.Read())
+                        iter.Begin();
+
+                        do
                         {
-                            var current = new OwnerVoting();
+                            do
+                            {
+                                do
+                                {
+                                    var ownerName = GetValue(iter);
 
-                            var votingHandler = new VotingHandler(null, 4, 6);
-                            var ownerNameHandler = new OwnerNameHandler(votingHandler, 3);
-                            var flatHandler = new FlatHandler(ownerNameHandler, 2);
-                            flatHandler.Handle(reader, initial, current);
-                        }
-                    } while (reader.NextResult());
-
+                                    if (iter.IsAtFinalOf(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
+                                    {
+                                        _logger.LogDebug("\n");
+                                    }
+                                } while (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine));
+                            } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
+                        } while (iter.Next(PageIteratorLevel.Block));
+                    }
                 }
             }
+
         }
-        catch (Exception ex)
+        catch (Exception e)
         {
-            _logger.LogError(ex, "Try to process data");
+            _logger.LogError(e, "OCR error");
+            Console.WriteLine("Unexpected Error: " + e.Message);
+            Console.WriteLine("Details: ");
+            Console.WriteLine(e.ToString());
         }
-        return owners;
-    }
-}
 
-public interface IHandler
-{
-    void Handle(IExcelDataReader reader, OwnerVoting initial, OwnerVoting current);
-}
-
-public abstract class BaseHandler : IHandler
-{
-    protected int _index;
-    protected IHandler? _nextHandler;
-
-    protected BaseHandler(IHandler? handler, int index)
-    {
-        _nextHandler = handler;
-        _index = index;
+        return Enumerable.Empty<OwnerVoting>();
     }
 
-    public void Handle(IExcelDataReader reader, OwnerVoting initial, OwnerVoting current)
+    private string GetValue(ResultIterator iter)
     {
-        if (reader[_index] != null)
+        var sb = _builderPool.Get();
+        do
         {
-            ReaderIsNotNull(reader, initial, current);
-        }
-        else
-        {
-            ReaderIsNull(initial, current);
-        }
-        if (_nextHandler != null)
-        {
-            _nextHandler.Handle(reader, initial, current);
-        }
-    }
+            var str = $"{iter.GetText(PageIteratorLevel.Word)} ";
+            _logger.LogDebug(str);
+            sb.Append(str);
+        } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
 
-    public abstract void ReaderIsNotNull(IExcelDataReader reader, OwnerVoting initial, OwnerVoting current);
-    public abstract void ReaderIsNull(OwnerVoting initial, OwnerVoting current);
-}
-
-public class FlatHandler : BaseHandler
-{
-    public FlatHandler(IHandler handler, int index) : base(handler, index)
-    {
-    }
-
-    public override void ReaderIsNotNull(IExcelDataReader reader, OwnerVoting initial, OwnerVoting current)
-    {
-        var flatId = (int)reader.GetDouble(_index);
-        initial.FlatId = current.FlatId = flatId;
-    }
-
-    public override void ReaderIsNull(OwnerVoting initial, OwnerVoting current)
-    {
-        if (initial.FlatId > 0)
-        {
-            current.FlatId = initial.FlatId;
-        }
-    }
-}
-
-public class OwnerNameHandler : BaseHandler
-{
-    public OwnerNameHandler(IHandler handler, int index) : base(handler, index)
-    {
-    }
-
-    public override void ReaderIsNotNull(IExcelDataReader reader, OwnerVoting initial, OwnerVoting current)
-    {
-        var surname = reader.GetString(_index);
-        current.OwnerName = initial.OwnerName = surname;
-    }
-
-    public override void ReaderIsNull(OwnerVoting initial, OwnerVoting current)
-    {
-        if (!string.IsNullOrEmpty(initial.OwnerName))
-        {
-            current.OwnerName = initial.OwnerName;
-        }
-    }
-}
-
-public class VotingHandler : BaseHandler
-{
-    private int _end;
-    public VotingHandler(IHandler? handler, int index, int end) : base(handler, index)
-    {
-        _end = end;
-    }
-
-    public override void ReaderIsNotNull(IExcelDataReader reader, OwnerVoting initial, OwnerVoting current)
-    {
-        var found = 0;
-        for (int i = _index; i <= _end; i++)
-        {
-            if (reader[i] != null)
-            {
-                found = i - 3;
-                break;
-            }
-        }
-        if (found > 0)
-        {
-            current.Vote = initial.Vote = (VoteType)found;
-        }
-    }
-
-    public override void ReaderIsNull(OwnerVoting initial, OwnerVoting current)
-    {
-        current.Vote = initial.Vote;
+        return sb.ToString();
     }
 }
