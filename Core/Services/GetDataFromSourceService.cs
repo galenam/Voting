@@ -1,5 +1,6 @@
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using System.Text;
-using ExcelDataReader;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
 using Microsoft.Extensions.Options;
@@ -50,15 +51,50 @@ public class GetDataFromSourceService : IGetDataFromSourceService
                         {
                             do
                             {
-                                do
+
+                                var squareFlatString = GetValue(iter);
+                                _logger.LogDebug(squareFlatString);
+                                var squareFlat = 0M;
+                                decimal.TryParse(squareFlatString, out squareFlat);
+
+                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
+                                {
+                                    var livingQuater = GetValue(iter);
+                                    _logger.LogDebug(livingQuater);
+                                    var lqt = livingQuater.GetEnumValueByDisplayName<LivingQuater>();
+                                }
+
+                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
+                                {
+                                    var flatTypeString = GetValue(iter);
+                                    _logger.LogDebug(flatTypeString);
+                                    var flatType = flatTypeString.GetEnumValueByDisplayName<FlatType>();
+                                }
+
+                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
                                 {
                                     var ownerName = GetValue(iter);
+                                    _logger.LogDebug(ownerName);
+                                }
+                                
+                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
+                                {
+                                    var squareOfPartString = GetValue(iter);
+                                    _logger.LogDebug(squareOfPartString);
+                                    var squareOfPart = 0M;
+                                    decimal.TryParse(squareOfPartString, out squareOfPart);
+                                }
+                                
+                                iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine);
+                                
+                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
+                                {
+                                    var percentOfTheWholeHouseString = GetValue(iter);
+                                    _logger.LogDebug(percentOfTheWholeHouseString);
+                                    var percentOfTheWholeHouse = 0M;
+                                    decimal.TryParse(percentOfTheWholeHouseString, out percentOfTheWholeHouse);
+                                }
 
-                                    if (iter.IsAtFinalOf(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
-                                    {
-                                        _logger.LogDebug("\n");
-                                    }
-                                } while (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine));
                             } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
                         } while (iter.Next(PageIteratorLevel.Block));
                     }
@@ -76,14 +112,12 @@ public class GetDataFromSourceService : IGetDataFromSourceService
 
         return Enumerable.Empty<OwnerVoting>();
     }
-
     private string GetValue(ResultIterator iter)
     {
         var sb = _builderPool.Get();
         do
         {
             var str = $"{iter.GetText(PageIteratorLevel.Word)} ";
-            _logger.LogDebug(str);
             sb.Append(str);
         } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
 
