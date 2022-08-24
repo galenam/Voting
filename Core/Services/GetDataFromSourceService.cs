@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-using System.Reflection;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
@@ -8,7 +6,7 @@ using Models;
 using Tesseract;
 
 namespace Services;
-public class GetDataFromSourceService : IGetDataFromSourceService
+public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
 {
     private ILogger<GetDataFromSourceService> _logger;
     private Settings _settings;
@@ -25,10 +23,7 @@ public class GetDataFromSourceService : IGetDataFromSourceService
         _builderPool = builderPool;
     }
 
-    ~GetDataFromSourceService()
-    {
-        _engine.Dispose();
-    }
+    public void Dispose() => _engine.Dispose();
 
     public IEnumerable<OwnerVoting> Get()
     {
@@ -46,56 +41,43 @@ public class GetDataFromSourceService : IGetDataFromSourceService
                     using (var iter = page.GetIterator())
                     {
                         iter.Begin();
-
+                        var ownerData = new OwnerData();
                         do
                         {
-                            do
+                            var flatNumberString = GetValue(iter);
+                            if (int.TryParse(flatNumberString, out int flatNumber))
                             {
+                                ownerData.FlatNumber = flatNumber;
+                            }
 
-                                var squareFlatString = GetValue(iter);
-                                _logger.LogDebug(squareFlatString);
-                                var squareFlat = 0M;
-                                decimal.TryParse(squareFlatString, out squareFlat);
+                            var squareFlatString = GetValue(iter);
+                            if (decimal.TryParse(squareFlatString, out decimal squareFlat))
+                            {
+                                ownerData.FlatSquare = squareFlat;
+                            }
 
-                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
-                                {
-                                    var livingQuater = GetValue(iter);
-                                    _logger.LogDebug(livingQuater);
-                                    var lqt = livingQuater.GetEnumValueByDisplayName<LivingQuater>();
-                                }
+                            var livingQuater = GetValue(iter);
+                            ownerData.LivingQuaterType = livingQuater.GetEnumValueByDisplayName<LivingQuater>();
 
-                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
-                                {
-                                    var flatTypeString = GetValue(iter);
-                                    _logger.LogDebug(flatTypeString);
-                                    var flatType = flatTypeString.GetEnumValueByDisplayName<FlatType>();
-                                }
+                            var flatTypeString = GetValue(iter);
+                            ownerData.TypeOfFlat = flatTypeString.GetEnumValueByDisplayName<FlatType>();
 
-                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
-                                {
-                                    var ownerName = GetValue(iter);
-                                    _logger.LogDebug(ownerName);
-                                }
-                                
-                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
-                                {
-                                    var squareOfPartString = GetValue(iter);
-                                    _logger.LogDebug(squareOfPartString);
-                                    var squareOfPart = 0M;
-                                    decimal.TryParse(squareOfPartString, out squareOfPart);
-                                }
-                                
-                                iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine);
-                                
-                                if (iter.Next(PageIteratorLevel.Para, PageIteratorLevel.TextLine))
-                                {
-                                    var percentOfTheWholeHouseString = GetValue(iter);
-                                    _logger.LogDebug(percentOfTheWholeHouseString);
-                                    var percentOfTheWholeHouse = 0M;
-                                    decimal.TryParse(percentOfTheWholeHouseString, out percentOfTheWholeHouse);
-                                }
+                            var ownerName = GetValue(iter);
+                            ownerData.Name = ownerName;
 
-                            } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
+                            var squareOfPartString = GetValue(iter);
+                            if (decimal.TryParse(squareOfPartString, out decimal squareOfPart))
+                            {
+                                ownerData.SquareOfPart = squareOfPart;
+                            }
+
+                            iter.Next(PageIteratorLevel.Block);
+
+                            var percentOfTheWholeHouseString = GetValue(iter);
+                            if (decimal.TryParse(percentOfTheWholeHouseString, out decimal percentOfTheWholeHouse))
+                            {
+                                ownerData.PercentOfTheWholeHouse = percentOfTheWholeHouse;
+                            }
                         } while (iter.Next(PageIteratorLevel.Block));
                     }
                 }
@@ -117,10 +99,14 @@ public class GetDataFromSourceService : IGetDataFromSourceService
         var sb = _builderPool.Get();
         do
         {
-            var str = $"{iter.GetText(PageIteratorLevel.Word)} ";
-            sb.Append(str);
-        } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
+            do
+            {
+                var str = $"{iter.GetText(PageIteratorLevel.Word)} ";
+                sb.Append(str);
+            } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
+        } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
 
+        iter.Next(PageIteratorLevel.Block);
         return sb.ToString();
     }
 }

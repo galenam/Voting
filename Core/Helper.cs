@@ -1,32 +1,17 @@
 using System.ComponentModel.DataAnnotations;
-using Models;
+using System.Text.RegularExpressions;
 
 public static class Helper
 {
-    /*
-    public static LivingQuater GetEnumValueByDisplayNameLivingQuater(this string attributeName)
-    {
-        var fInfos = typeof(LivingQuater).GetFields();
-
-        foreach (var fInfo in fInfos)
-        {
-            var attributes = (DisplayAttribute[])fInfo.GetCustomAttributes(typeof(DisplayAttribute), false);
-            if (attributes != null && attributes.Length > 0)
-            {
-                if (attributeName == attributes[0].Name)
-                {
-                    LivingQuater value;
-                    Enum.TryParse<LivingQuater>(fInfo.Name, out value);
-                    return value;
-                }
-            }
-        }
-        return default(LivingQuater);
-    }
-*/
-    public static T GetEnumValueByDisplayName<T>(this string attributeName)
+    static Regex regexLettersNumbers = new Regex("\\W");
+    public static T GetEnumValueByDisplayName<T>(this string rowData)
     where T : struct
     {
+        var attributeName = rowData.ToLower();
+        if (regexLettersNumbers.IsMatch(attributeName))
+        {
+            attributeName = regexLettersNumbers.Replace(attributeName, "");
+        }
         var fInfos = typeof(T).GetFields();
 
         foreach (var fInfo in fInfos)
@@ -34,7 +19,7 @@ public static class Helper
             var attributes = (DisplayAttribute[])fInfo.GetCustomAttributes(typeof(DisplayAttribute), false);
             if (attributes != null && attributes.Length > 0)
             {
-                if (attributeName.ToLower() == attributes[0].Name)
+                if (attributeName == attributes[0].Name)
                 {
                     Enum.TryParse<T>(fInfo.Name, out T value);
                     return (T)value;

@@ -2,12 +2,18 @@ namespace Models;
 
 public class OwnerData
 {
-    public int FlatNumber { get; private set; }
-    public decimal FlatSquare { get; private set; }
+    public int FlatNumber { get; set; }
+    public decimal FlatSquare { get; set; }
 
-    public LivingQuater LivingQuaterType { get; private set; }
-    public FlatType TypeOfFlat { get; private set; }
-    public string Name { get; private set; }
-    public decimal SquareOfPart { get; private set; }
-    public decimal PercentOfTheWholeHouse { get; private set; }
+    public LivingQuater LivingQuaterType { get; set; }
+    public FlatType TypeOfFlat { get; set; }
+    public string Name { get; set; }
+    public decimal SquareOfPart { get; set; }
+    public decimal PercentOfTheWholeHouse { get; set; }
+
+    public override string ToString()
+    {
+        return @$"FlatNumber={FlatNumber} FlatSquare={FlatSquare} LivingQuaterType={LivingQuaterType} TypeOfFlat={TypeOfFlat} Name={Name} 
+        SquareOfPart={SquareOfPart} PercentOfTheWholeHouse={PercentOfTheWholeHouse}";
+    }
 }
