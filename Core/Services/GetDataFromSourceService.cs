@@ -41,16 +41,18 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
                     using (var iter = page.GetIterator())
                     {
                         iter.Begin();
-                        var ownerData = new OwnerData();
+                        var owners = new List<OwnerData>();
+                        bool hasNext = true;
                         do
                         {
-                            var flatNumberString = GetValue(iter);
+                            var ownerData = new OwnerData();
+                            var flatNumberString = GetValue(iter).CleanIntString();
                             if (int.TryParse(flatNumberString, out int flatNumber))
                             {
                                 ownerData.FlatNumber = flatNumber;
                             }
 
-                            var squareFlatString = GetValue(iter);
+                            var squareFlatString = GetValue(iter).CleanDecimalString();
                             if (decimal.TryParse(squareFlatString, out decimal squareFlat))
                             {
                                 ownerData.FlatSquare = squareFlat;
@@ -62,10 +64,10 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
                             var flatTypeString = GetValue(iter);
                             ownerData.TypeOfFlat = flatTypeString.GetEnumValueByDisplayName<FlatType>();
 
-                            var ownerName = GetValue(iter);
+                            var ownerName = GetValue(iter).CleanString();
                             ownerData.Name = ownerName;
 
-                            var squareOfPartString = GetValue(iter);
+                            var squareOfPartString = GetValue(iter).CleanDecimalString();
                             if (decimal.TryParse(squareOfPartString, out decimal squareOfPart))
                             {
                                 ownerData.SquareOfPart = squareOfPart;
@@ -73,12 +75,13 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
 
                             iter.Next(PageIteratorLevel.Block);
 
-                            var percentOfTheWholeHouseString = GetValue(iter);
+                            var percentOfTheWholeHouseString = GetValue(iter, out hasNext).CleanDecimalString();
                             if (decimal.TryParse(percentOfTheWholeHouseString, out decimal percentOfTheWholeHouse))
                             {
                                 ownerData.PercentOfTheWholeHouse = percentOfTheWholeHouse;
                             }
-                        } while (iter.Next(PageIteratorLevel.Block));
+                            owners.Add(ownerData);
+                        } while (hasNext);
                     }
                 }
             }
@@ -94,7 +97,14 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
 
         return Enumerable.Empty<OwnerVoting>();
     }
+
     private string GetValue(ResultIterator iter)
+    {
+        bool hasNext;
+        var result = GetValue(iter, out hasNext);
+        return result;
+    }
+    private string GetValue(ResultIterator iter, out bool hasNext)
     {
         var sb = _builderPool.Get();
         do
@@ -106,7 +116,7 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
             } while (iter.Next(PageIteratorLevel.TextLine, PageIteratorLevel.Word));
         } while (iter.Next(PageIteratorLevel.Block, PageIteratorLevel.Para));
 
-        iter.Next(PageIteratorLevel.Block);
+        hasNext = iter.Next(PageIteratorLevel.Block);
         return sb.ToString();
     }
 }
