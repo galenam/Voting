@@ -5,16 +5,18 @@ using System.Text.RegularExpressions;
 public static class Helper
 {
     static Regex regexLettersNumbers = new Regex("\\W");
+    static Regex regexWords = new Regex("[^а-яА-Я ]");
     static Regex nonIntRegex = new Regex("\\D");
     static Regex decimalRegex = new Regex("\\D*(?<first>\\d+)(^,)*(?<sign>.|,?)\\D*(?<last>\\d*)\\D*");
 
     public static string CleanString(this string value)
     {
-        if (regexLettersNumbers.IsMatch(value))
+        var result = value.Trim();
+        if (regexWords.IsMatch(value))
         {
-            return regexLettersNumbers.Replace(value, "");
+            return regexWords.Replace(result, "");
         }
-        return value;
+        return result.Trim();
     }
 
     public static string CleanIntString(this string value)

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.ObjectPool;
@@ -29,59 +30,75 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
     {
         try
         {
-            var testImagePath = _settings.FilePathTiff;
-            _logger.LogDebug($"path to the file: {testImagePath}");
-
-            using (var img = Pix.LoadFromFile(testImagePath))
+            var imageDirectory = _settings.DirectoryPathImage;
+            var files = GetFileNames(imageDirectory);
+            if (!files.Any())
             {
-                using (var page = _engine.Process(img))
+                return Enumerable.Empty<OwnerVoting>();
+            }
+
+            _logger.LogDebug($"path to the directory: {imageDirectory}");
+
+            foreach (var file in files)
+            {
+                using (var img = Pix.LoadFromFile(file))
                 {
-                    _logger.LogDebug("Mean confidence: {0}", page.GetMeanConfidence());
-                    _logger.LogDebug("Text (iterator):");
-                    using (var iter = page.GetIterator())
+                    using (var page = _engine.Process(img))
                     {
-                        iter.Begin();
-                        var owners = new List<OwnerData>();
-                        bool hasNext = true;
-                        do
+                        _logger.LogDebug("Mean confidence: {0}", page.GetMeanConfidence());
+                        _logger.LogDebug("Text (iterator):");
+                        using (var iter = page.GetIterator())
                         {
-                            var ownerData = new OwnerData();
-                            var flatNumberString = GetValue(iter).CleanIntString();
-                            if (int.TryParse(flatNumberString, out int flatNumber))
+                            iter.Begin();
+                            var owners = new List<OwnerData>();
+                            bool hasNext = true;
+                            do
                             {
-                                ownerData.FlatNumber = flatNumber;
-                            }
+                                var ownerData = new OwnerData();
+                                var flatNumberString = GetValue(iter).CleanIntString();
+                                if (int.TryParse(flatNumberString, out int flatNumber))
+                                {
+                                    ownerData.FlatNumber = flatNumber;
+                                }
 
-                            var squareFlatString = GetValue(iter).CleanDecimalString();
-                            if (decimal.TryParse(squareFlatString, out decimal squareFlat))
-                            {
-                                ownerData.FlatSquare = squareFlat;
-                            }
+                                var squareFlatString = GetValue(iter).CleanDecimalString();
+                                if (decimal.TryParse(squareFlatString, out decimal squareFlat))
+                                {
+                                    ownerData.FlatSquare = squareFlat;
+                                }
 
-                            var livingQuater = GetValue(iter);
-                            ownerData.LivingQuaterType = livingQuater.GetEnumValueByDisplayName<LivingQuater>();
+                                var livingQuater = GetValue(iter);
+                                ownerData.LivingQuaterType = livingQuater.GetEnumValueByDisplayName<LivingQuater>();
 
-                            var flatTypeString = GetValue(iter);
-                            ownerData.TypeOfFlat = flatTypeString.GetEnumValueByDisplayName<FlatType>();
+                                var flatTypeString = GetValue(iter);
+                                ownerData.TypeOfFlat = flatTypeString.GetEnumValueByDisplayName<FlatType>();
 
-                            var ownerName = GetValue(iter).CleanString();
-                            ownerData.Name = ownerName;
+                                var ownerName = GetValue(iter).CleanString();
+                                ownerData.Name = ownerName;
 
-                            var squareOfPartString = GetValue(iter).CleanDecimalString();
-                            if (decimal.TryParse(squareOfPartString, out decimal squareOfPart))
-                            {
-                                ownerData.SquareOfPart = squareOfPart;
-                            }
+                                var squareOfPartString = GetValue(iter).CleanDecimalString();
+                                if (decimal.TryParse(squareOfPartString, out decimal squareOfPart))
+                                {
+                                    ownerData.SquareOfPart = squareOfPart;
+                                }
 
-                            iter.Next(PageIteratorLevel.Block);
+                                iter.Next(PageIteratorLevel.Block);
 
-                            var percentOfTheWholeHouseString = GetValue(iter, out hasNext).CleanDecimalString();
-                            if (decimal.TryParse(percentOfTheWholeHouseString, out decimal percentOfTheWholeHouse))
-                            {
-                                ownerData.PercentOfTheWholeHouse = percentOfTheWholeHouse;
-                            }
-                            owners.Add(ownerData);
-                        } while (hasNext);
+                                var percentOfTheWholeHouseString = GetValue(iter, out hasNext).CleanDecimalString();
+                                if (decimal.TryParse(percentOfTheWholeHouseString, out decimal percentOfTheWholeHouse))
+                                {
+                                    ownerData.PercentOfTheWholeHouse = percentOfTheWholeHouse;
+                                }
+                                var vc = new ValidationContext(ownerData);
+                                var errorResults = new List<ValidationResult>();
+                                var isValid = Validator.TryValidateObject(ownerData, vc, errorResults);
+
+                                if (isValid)
+                                {
+                                    owners.Add(ownerData);
+                                }
+                            } while (hasNext);
+                        }
                     }
                 }
             }
@@ -118,5 +135,14 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
 
         hasNext = iter.Next(PageIteratorLevel.Block);
         return sb.ToString();
+    }
+
+    private IEnumerable<string> GetFileNames(string directoryPath)
+    {
+        if (string.IsNullOrEmpty(directoryPath))
+        {
+            return Enumerable.Empty<string>();
+        }
+        return Directory.EnumerateFiles(directoryPath);
     }
 }
