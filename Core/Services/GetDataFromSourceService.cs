@@ -43,9 +43,9 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
             {
                 using (var img = Pix.LoadFromFile(file))
                 {
-                    using (var page = _engine.Process(img))
+                    using (var page = _engine.Process(img, PageSegMode.SingleColumn))
                     {
-                        _logger.LogDebug("Mean confidence: {0}", page.GetMeanConfidence());
+                        _logger.LogDebug($"Whole text: {page.GetText()}");
                         _logger.LogDebug("Text (iterator):");
                         using (var iter = page.GetIterator())
                         {
@@ -117,9 +117,7 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
 
     private string GetValue(ResultIterator iter)
     {
-        bool hasNext;
-        var result = GetValue(iter, out hasNext);
-        return result;
+        return GetValue(iter, out _);
     }
     private string GetValue(ResultIterator iter, out bool hasNext)
     {
