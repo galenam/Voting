@@ -1,6 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.RegularExpressions;
+using Models;
+using Tesseract;
 
 public static class Helper
 {
@@ -62,4 +64,6 @@ public static class Helper
         }
         return default(T);
     }
+
+    public static Rect GetRectFromCoordinates(this Coordinate c) => Rect.FromCoords(c.X1, c.Y1, c.X2, c.Y2);
 }
