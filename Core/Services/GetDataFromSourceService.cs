@@ -38,8 +38,74 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
             var listOfList = GetRawData(files);
             int indexFlatNumber = 0, indexSquareFlat = 0, indexlivingQuater = 0, indexFlatType = 0, indexOwnerName = 0,
                 indexSquareOfPart = 0, indexPercentOfTheWholeHouse = 0;
+            var owners = new List<OwnerData>();
+
             do
-            { }
+            {
+                var ownerData = new OwnerData();
+                if (indexFlatNumber < listOfList[0].Count)
+                {
+                    var flatNumberString = listOfList[0][indexFlatNumber].CleanIntString();
+                    if (int.TryParse(flatNumberString, out int flatNumber))
+                    {
+                        ownerData.FlatSquare = flatNumber;
+                    }
+                    indexFlatNumber++;
+                }
+                if (indexSquareFlat < listOfList[1].Count)
+                {
+                    var squareFlatString = listOfList[1][indexSquareFlat].CleanDecimalString();
+                    if (decimal.TryParse(squareFlatString, out decimal squareFlat))
+                    {
+                        ownerData.FlatSquare = squareFlat;
+                    }
+                    indexFlatNumber++;
+                }
+                if (indexlivingQuater < listOfList[2].Count)
+                {
+                    var livingQuater = listOfList[2][indexlivingQuater];
+                    ownerData.LivingQuaterType = livingQuater.GetEnumValueByDisplayName<LivingQuater>();
+                    indexlivingQuater++;
+                }
+                if (indexFlatType < listOfList[3].Count)
+                {
+                    var flatTypeString = listOfList[3][indexFlatType];
+                    ownerData.TypeOfFlat = flatTypeString.GetEnumValueByDisplayName<FlatType>();
+                    indexFlatType++;
+                }
+                if (indexOwnerName < listOfList[4].Count)
+                {
+                    var ownerName = listOfList[4][indexOwnerName].CleanString();
+                    ownerData.Name = ownerName;
+                    indexOwnerName++;
+                }
+                if (indexSquareOfPart < listOfList[5].Count)
+                {
+                    var squareOfPartString = listOfList[5][indexSquareOfPart].CleanDecimalString();
+                    if (decimal.TryParse(squareOfPartString, out decimal squareOfPart))
+                    {
+                        ownerData.SquareOfPart = squareOfPart;
+                    }
+                    indexSquareOfPart++;
+                }
+                if (indexPercentOfTheWholeHouse < listOfList[6].Count)
+                {
+                    var percentOfTheWholeHouseString = listOfList[6][indexPercentOfTheWholeHouse].CleanDecimalString();
+                    if (decimal.TryParse(percentOfTheWholeHouseString, out decimal percentOfTheWholeHouse))
+                    {
+                        ownerData.PercentOfTheWholeHouse = percentOfTheWholeHouse;
+                    }
+                    indexPercentOfTheWholeHouse++;
+                }
+                var vc = new ValidationContext(ownerData);
+                var errorResults = new List<ValidationResult>();
+                var isValid = Validator.TryValidateObject(ownerData, vc, errorResults);
+
+                if (isValid)
+                {
+                    owners.Add(ownerData);
+                }
+            }
             while (indexFlatNumber < listOfList[0].Count || indexSquareFlat < listOfList[1].Count
                 || indexlivingQuater < listOfList[2].Count || indexFlatType < listOfList[3].Count
                 || indexOwnerName < listOfList[4].Count || indexSquareOfPart < listOfList[5].Count
@@ -95,64 +161,6 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
             hasNext = iter.Next(PageIteratorLevel.TextLine);
         } while (hasNext);
         return list;
-    }
-
-    /*
-                                    var ownerData = new OwnerData();
-                                    var flatNumberString = GetValue(iter).CleanIntString();
-                                    if (int.TryParse(flatNumberString, out int flatNumber))
-                                    {
-                                        ownerData.FlatNumber = flatNumber;
-                                    }
-
-                                    var squareFlatString = GetValue(iter).CleanDecimalString();
-                                    if (decimal.TryParse(squareFlatString, out decimal squareFlat))
-                                    {
-                                        ownerData.FlatSquare = squareFlat;
-                                    }
-
-                                    var livingQuater = GetValue(iter);
-                                    ownerData.LivingQuaterType = livingQuater.GetEnumValueByDisplayName<LivingQuater>();
-
-                                    var flatTypeString = GetValue(iter);
-                                    ownerData.TypeOfFlat = flatTypeString.GetEnumValueByDisplayName<FlatType>();
-
-                                    var ownerName = GetValue(iter).CleanString();
-                                    ownerData.Name = ownerName;
-
-                                    var squareOfPartString = GetValue(iter).CleanDecimalString();
-                                    if (decimal.TryParse(squareOfPartString, out decimal squareOfPart))
-                                    {
-                                        ownerData.SquareOfPart = squareOfPart;
-                                    }
-
-                                    iter.Next(PageIteratorLevel.Block);
-
-                                    var percentOfTheWholeHouseString = GetValue(iter, out hasNext).CleanDecimalString();
-                                    if (decimal.TryParse(percentOfTheWholeHouseString, out decimal percentOfTheWholeHouse))
-                                    {
-                                        ownerData.PercentOfTheWholeHouse = percentOfTheWholeHouse;
-                                    }
-                                    var vc = new ValidationContext(ownerData);
-                                    var errorResults = new List<ValidationResult>();
-                                    var isValid = Validator.TryValidateObject(ownerData, vc, errorResults);
-
-                                    if (isValid)
-                                    {
-                                        owners.Add(ownerData);
-                                    }*/
-
-    private string GetValue(ResultIterator iter)
-    {
-        return GetValue(iter, out _);
-    }
-    private string GetValue(ResultIterator iter, out bool hasNext)
-    {
-        var sb = _builderPool.Get();
-        var str = $"{iter.GetText(PageIteratorLevel.Block)} ";
-        sb.Append(str);
-        hasNext = iter.Next(PageIteratorLevel.Block);
-        return sb.ToString();
     }
 
     private IEnumerable<string> GetFileNames()
