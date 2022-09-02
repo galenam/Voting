@@ -35,83 +35,10 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
             {
                 return Enumerable.Empty<OwnerVoting>();
             }
-            var listOfList = GetRawData(files);
-            int indexFlatNumber = 0, indexSquareFlat = 0, indexlivingQuater = 0, indexFlatType = 0, indexOwnerName = 0,
-                indexSquareOfPart = 0, indexPercentOfTheWholeHouse = 0;
-            var owners = new List<OwnerData>();
-
-            do
+            foreach (var file in files)
             {
-                var ownerData = new OwnerData();
-                if (indexFlatNumber < listOfList[0].Count)
-                {
-                    var flatNumberString = listOfList[0][indexFlatNumber].CleanIntString();
-                    if (int.TryParse(flatNumberString, out int flatNumber))
-                    {
-                        ownerData.FlatSquare = flatNumber;
-                    }
-                    indexFlatNumber++;
-                }
-                if (indexSquareFlat < listOfList[1].Count)
-                {
-                    var squareFlatString = listOfList[1][indexSquareFlat].CleanDecimalString();
-                    if (decimal.TryParse(squareFlatString, out decimal squareFlat))
-                    {
-                        ownerData.FlatSquare = squareFlat;
-                    }
-                    indexFlatNumber++;
-                }
-                if (indexlivingQuater < listOfList[2].Count)
-                {
-                    var livingQuater = listOfList[2][indexlivingQuater];
-                    ownerData.LivingQuaterType = livingQuater.GetEnumValueByDisplayName<LivingQuater>();
-                    indexlivingQuater++;
-                }
-                if (indexFlatType < listOfList[3].Count)
-                {
-                    var flatTypeString = listOfList[3][indexFlatType];
-                    ownerData.TypeOfFlat = flatTypeString.GetEnumValueByDisplayName<FlatType>();
-                    indexFlatType++;
-                }
-                if (indexOwnerName < listOfList[4].Count)
-                {
-                    var ownerName = listOfList[4][indexOwnerName].CleanString();
-                    ownerData.Name = ownerName;
-                    indexOwnerName++;
-                }
-                if (indexSquareOfPart < listOfList[5].Count)
-                {
-                    var squareOfPartString = listOfList[5][indexSquareOfPart].CleanDecimalString();
-                    if (decimal.TryParse(squareOfPartString, out decimal squareOfPart))
-                    {
-                        ownerData.SquareOfPart = squareOfPart;
-                    }
-                    indexSquareOfPart++;
-                }
-                if (indexPercentOfTheWholeHouse < listOfList[6].Count)
-                {
-                    var percentOfTheWholeHouseString = listOfList[6][indexPercentOfTheWholeHouse].CleanDecimalString();
-                    if (decimal.TryParse(percentOfTheWholeHouseString, out decimal percentOfTheWholeHouse))
-                    {
-                        ownerData.PercentOfTheWholeHouse = percentOfTheWholeHouse;
-                    }
-                    indexPercentOfTheWholeHouse++;
-                }
-                var vc = new ValidationContext(ownerData);
-                var errorResults = new List<ValidationResult>();
-                var isValid = Validator.TryValidateObject(ownerData, vc, errorResults);
-
-                if (isValid)
-                {
-                    owners.Add(ownerData);
-                }
+                var ownerData = GetOwnerData(file);
             }
-            while (indexFlatNumber < listOfList[0].Count || indexSquareFlat < listOfList[1].Count
-                || indexlivingQuater < listOfList[2].Count || indexFlatType < listOfList[3].Count
-                || indexOwnerName < listOfList[4].Count || indexSquareOfPart < listOfList[5].Count
-                || indexPercentOfTheWholeHouse < listOfList[6].Count);
-
-
         }
         catch (Exception e)
         {
@@ -124,31 +51,111 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
         return Enumerable.Empty<OwnerVoting>();
     }
 
-    internal IList<IList<string>> GetRawData(IEnumerable<string> files)
+    internal IList<OwnerData> GetOwnerDataFromStrings(IList<IList<string>> listOfList)
     {
-        var listOfList = new List<IList<string>>();
-        foreach (var file in files)
+        int indexFlatNumber = 0, indexSquareFlat = 0, indexLivingQuater = 0, indexFlatType = 0, indexOwnerName = 0,
+                indexSquareOfPart = 0, indexPercentOfTheWholeHouse = 0;
+        var owners = new List<OwnerData>();
+        do
         {
-            using (var img = Pix.LoadFromFile(file))
+            var ownerData = new OwnerData();
+            if (indexFlatNumber < listOfList[0].Count)
             {
-                foreach (var c in _settings.Coordinates)
+                var flatNumberString = listOfList[0][indexFlatNumber].CleanIntString();
+                if (int.TryParse(flatNumberString, out int flatNumber))
                 {
-                    var rect = c.GetRectFromCoordinates();
-                    using (var page = _engine.Process(img, rect, PageSegMode.SingleColumn))
-                    {
-                        _logger.LogDebug($"Coordinates: {c}, Whole text: {page.GetText()}");
-                        _logger.LogDebug("Text (iterator):");
-                        using (var iter = page.GetIterator())
-                        {
-                            iter.Begin();
-                            var list = GetStringsFromIterator(iter);
-                            listOfList.Add(list);
-                        }
-                    }
+                    ownerData.FlatSquare = flatNumber;
+                }
+                indexFlatNumber++;
+            }
+            if (indexSquareFlat < listOfList[1].Count)
+            {
+                var squareFlatString = listOfList[1][indexSquareFlat].CleanDecimalString();
+                if (decimal.TryParse(squareFlatString, out decimal squareFlat))
+                {
+                    ownerData.FlatSquare = squareFlat;
+                }
+                indexSquareFlat++;
+            }
+            if (indexLivingQuater < listOfList[2].Count)
+            {
+                var livingQuater = listOfList[2][indexLivingQuater];
+                ownerData.LivingQuaterType = livingQuater.GetEnumValueByDisplayName<LivingQuater>();
+                indexLivingQuater++;
+            }
+            if (indexFlatType < listOfList[3].Count)
+            {
+                var flatTypeString = listOfList[3][indexFlatType];
+                ownerData.TypeOfFlat = flatTypeString.GetEnumValueByDisplayName<FlatType>();
+                indexFlatType++;
+            }
+            if (indexOwnerName < listOfList[4].Count)
+            {
+                var ownerName = listOfList[4][indexOwnerName].CleanString();
+                ownerData.Name = ownerName;
+                indexOwnerName++;
+            }
+            if (indexSquareOfPart < listOfList[5].Count)
+            {
+                var squareOfPartString = listOfList[5][indexSquareOfPart].CleanDecimalString();
+                if (decimal.TryParse(squareOfPartString, out decimal squareOfPart))
+                {
+                    ownerData.SquareOfPart = squareOfPart;
+                }
+                indexSquareOfPart++;
+            }
+            if (indexPercentOfTheWholeHouse < listOfList[6].Count)
+            {
+                var percentOfTheWholeHouseString = listOfList[6][indexPercentOfTheWholeHouse].CleanDecimalString();
+                if (decimal.TryParse(percentOfTheWholeHouseString, out decimal percentOfTheWholeHouse))
+                {
+                    ownerData.PercentOfTheWholeHouse = percentOfTheWholeHouse;
+                }
+                indexPercentOfTheWholeHouse++;
+            }
+            //todo : transform data (percentOfTheWholeHouse should < 1, SquareOfPart < FlatSquare)
+
+            var vc = new ValidationContext(ownerData);
+            var errorResults = new List<ValidationResult>();
+            var isValid = Validator.TryValidateObject(ownerData, vc, errorResults);
+
+            if (isValid)
+            {
+                owners.Add(ownerData);
+            }
+        }
+        while (indexFlatNumber < listOfList[0].Count || indexSquareFlat < listOfList[1].Count
+            || indexLivingQuater < listOfList[2].Count || indexFlatType < listOfList[3].Count
+            || indexOwnerName < listOfList[4].Count || indexSquareOfPart < listOfList[5].Count
+            || indexPercentOfTheWholeHouse < listOfList[6].Count);
+        return owners;
+    }
+
+    internal IList<OwnerData> GetOwnerData(string file)
+    {
+        IList<OwnerData> owners = new List<OwnerData>();
+
+        var listOfList = new List<IList<string>>();
+        using var img = Pix.LoadFromFile(file);
+        _logger.LogDebug($"File name: {file}");
+        foreach (var c in _settings.Coordinates)
+        {
+            var rect = c.GetRectFromCoordinates();
+            using (var page = _engine.Process(img, rect, PageSegMode.SingleColumn))
+            {
+                _logger.LogDebug($"Coordinates: {c}, Whole text: {page.GetText()}");
+                _logger.LogDebug("Text (iterator):");
+                using (var iter = page.GetIterator())
+                {
+                    iter.Begin();
+                    var list = GetStringsFromIterator(iter);
+                    listOfList.Add(list);
                 }
             }
         }
-        return listOfList;
+        owners = GetOwnerDataFromStrings(listOfList);
+
+        return owners;
     }
 
     private IList<string> GetStringsFromIterator(ResultIterator iter)
