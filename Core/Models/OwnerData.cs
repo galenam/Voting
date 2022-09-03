@@ -1,6 +1,6 @@
 namespace Models;
 
-[SquarePercentValidationAttribure]
+[OwnerDataValidationAttribure]
 public class OwnerData
 {
     public int FlatNumber { get; set; }
@@ -21,7 +21,7 @@ public class OwnerData
         {
             if (value >= 1)
             {
-                percentOfTheWholeHouse = 0;
+                percentOfTheWholeHouse = value - (int)value > 0 ? value - (int)value : 0;
             }
             else
             {

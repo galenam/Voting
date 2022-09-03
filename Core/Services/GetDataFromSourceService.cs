@@ -13,42 +13,48 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
     private Settings _settings;
 
     private readonly TesseractEngine _engine;
-    private ObjectPool<StringBuilder> _builderPool;
 
     public GetDataFromSourceService(ILogger<GetDataFromSourceService> logger, IOptions<Settings> options,
-        TesseractEngine engine, ObjectPool<StringBuilder> builderPool)
+        TesseractEngine engine)
     {
         _logger = logger;
         _settings = options.Value;
         _engine = engine;
-        _builderPool = builderPool;
     }
 
     public void Dispose() => _engine.Dispose();
 
-    public IEnumerable<OwnerVoting> Get()
+    public IEnumerable<OwnerData> Get()
     {
+        var ownerData = new List<OwnerData>();
         try
         {
             var files = GetFileNames();
             if (!files.Any())
             {
-                return Enumerable.Empty<OwnerVoting>();
+                return Enumerable.Empty<OwnerData>();
             }
             foreach (var file in files)
             {
-                var ownerData = GetOwnerData(file);
+                try
+                {
+                    ownerData.AddRange(GetOwnerData(file));
+                }
+                catch (Exception e)
+                {
+                    _logger.LogError(e, "OCR error");
+                    Console.WriteLine("Unexpected Error: " + e.Message);
+                    Console.WriteLine("Details: ");
+                    Console.WriteLine(e.ToString());
+                }
             }
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "OCR error");
-            Console.WriteLine("Unexpected Error: " + e.Message);
-            Console.WriteLine("Details: ");
-            Console.WriteLine(e.ToString());
+            _logger.LogError("File error: ", e);
         }
 
-        return Enumerable.Empty<OwnerVoting>();
+        return ownerData;
     }
 
     internal IList<OwnerData> GetOwnerDataFromStrings(IList<IList<string>> listOfList)
@@ -113,7 +119,6 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
                 }
                 indexPercentOfTheWholeHouse++;
             }
-            //todo : transform data (percentOfTheWholeHouse should < 1, SquareOfPart < FlatSquare)
 
             var vc = new ValidationContext(ownerData);
             var errorResults = new List<ValidationResult>();

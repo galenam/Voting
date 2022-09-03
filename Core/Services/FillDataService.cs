@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Models;
-using Tesseract;
 
 namespace Services;
 
@@ -11,8 +10,7 @@ public class FillDataService : IFillDataService
     private readonly Settings _settings;
 
     private readonly IGetDataFromSourceService _dataService;
-    public FillDataService(ILogger<FillDataService> logger, IOptions<Settings> options, IGetDataFromSourceService dataService,
-        TesseractEngine engine)
+    public FillDataService(ILogger<FillDataService> logger, IOptions<Settings> options, IGetDataFromSourceService dataService)
     {
         _logger = logger;
         _settings = options.Value;
@@ -22,6 +20,7 @@ public class FillDataService : IFillDataService
     public async Task<bool> FillDb()
     {
         var data = _dataService.Get();
+
         return true;
     }
 }
