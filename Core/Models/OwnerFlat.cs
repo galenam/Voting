@@ -7,3 +7,11 @@ public class OwnerFlat
     public int FlatId { get; set; }
     public decimal Square { get; set; }
 }
+
+public class OwnerFlatDTO
+{
+    public int Id { get; set; }
+    public int OwnerId { get; set; }
+    public int FlatId { get; set; }
+    public decimal Square { get; set; }
+}
