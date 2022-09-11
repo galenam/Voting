@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -26,11 +27,13 @@ using IHost host = Host.CreateDefaultBuilder(args)
         var configurationRoot = context.Configuration;
         services.AddSingleton<IFillDataService, FillDataService>();
         services.AddSingleton<IGetDataFromSourceService, GetDataFromSourceService>();
+        services.AddSingleton<IRepository, Repository>();
         var engine = new TesseractEngine(@"./data", "rus", EngineMode.Default);
         services.AddSingleton<TesseractEngine>(engine);
 
         services.AddOptions<Settings>()
             .Bind(configurationRoot.GetSection(nameof(Settings)));
+        services.AddDbContext<ApplicationDBContext>(options => options.UseNpgsql(configurationRoot.GetConnectionString("Postgres")));
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
     })
