@@ -11,8 +11,9 @@ public class Repository : IRepository
         _contextFactory = contextFactory;
     }
 
-    public async Task AddOwners(IEnumerable<OwnerDTO> owners)
+    public async Task AddOwners(IEnumerable<Owner> owners)
     {
-
+        using var context = _contextFactory.CreateDbContextAsync();
+        await (await context).Owners.AddRangeAsync(owners);
     }
 }

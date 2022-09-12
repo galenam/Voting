@@ -2,7 +2,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Models;
 using Serilog;
@@ -34,8 +33,8 @@ using IHost host = Host.CreateDefaultBuilder(args)
         services.AddOptions<Settings>()
             .Bind(configurationRoot.GetSection(nameof(Settings)));
         services.AddDbContext<ApplicationDBContext>(options => options.UseNpgsql(configurationRoot.GetConnectionString("Postgres")));
+        services.AddDatabaseDeveloperPageExceptionFilter();
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
     })
     .UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
                     .ReadFrom.Configuration(context.Configuration)
