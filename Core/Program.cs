@@ -24,16 +24,16 @@ using IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
         var configurationRoot = context.Configuration;
-        services.AddScoped<IFillDataService, FillDataService>();
-        services.AddScoped<IGetDataFromSourceService, GetDataFromSourceService>();
-        services.AddScoped<IRepository, Repository>();
+        services.AddSingleton<IFillDataService, FillDataService>();
+        services.AddSingleton<IGetDataFromSourceService, GetDataFromSourceService>();
+        services.AddSingleton<IRepository, Repository>();
         var engine = new TesseractEngine(@"./data", "rus", EngineMode.Default);
         services.AddSingleton<TesseractEngine>(engine);
 
         services.AddOptions<Settings>()
             .Bind(configurationRoot.GetSection(nameof(Settings)));
         services.AddDbContext<ApplicationDBContext>(
-            b => b.UseInMemoryDatabase(nameof(ApplicationDBContext)), ServiceLifetime.Scoped, ServiceLifetime.Singleton);
+            b => b.UseNpgsql(configurationRoot.GetConnectionString("Postgres")));
         services.AddDatabaseDeveloperPageExceptionFilter();
         Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     })

@@ -1,19 +1,24 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Models;
 
 namespace Services;
 
 public class Repository : IRepository
 {
-    IDbContextFactory<ApplicationDBContext> _contextFactory;
-    public Repository(IDbContextFactory<ApplicationDBContext> contextFactory)
+    IServiceProvider _serviceProvider;
+    IServiceScopeFactory _serviceScopeFactory;
+    public Repository(IServiceProvider serviceProvider, IServiceScopeFactory serviceScopeFactory)
     {
-        _contextFactory = contextFactory;
+        _serviceProvider = serviceProvider;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task AddOwners(IEnumerable<Owner> owners)
     {
-        using var context = _contextFactory.CreateDbContextAsync();
-        await (await context).Owners.AddRangeAsync(owners);
+        using var scope = _serviceScopeFactory.CreateScope();
+        using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>());
+        await context.Owners.AddRangeAsync(owners);
+        await context.SaveChangesAsync();
     }
 }
