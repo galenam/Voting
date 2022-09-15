@@ -168,7 +168,11 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
         bool hasNext = true;
         do
         {
-            list.Add(iter.GetText(PageIteratorLevel.TextLine).Trim().Replace("\n\n", string.Empty));
+            var text = iter.GetText(PageIteratorLevel.TextLine);
+            if (!string.IsNullOrEmpty(text))
+            {
+                list.Add(text.Trim().Replace("\n\n", string.Empty));
+            }
             hasNext = iter.Next(PageIteratorLevel.TextLine);
         } while (hasNext);
         return list;

@@ -8,3 +8,4 @@ Core/appsettings.Development.json
 /logs/*
 */.vs/*
 /.vs/*
+*.tiff
