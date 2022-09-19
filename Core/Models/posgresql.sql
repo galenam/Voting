@@ -40,4 +40,7 @@ create table VOTE(
 	type_id integer references VOTE_TYPE(id)
 );
 
+alter table public.owner
+	add constraint owner_name_unique UNIQUE("name");
 
+create index owner_name_index on public.owner(name);

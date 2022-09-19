@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Models;
@@ -23,9 +24,15 @@ public class FillDataService : IFillDataService
     public async Task<bool> FillDb()
     {
         var data = _dataService.Get();
-        var owners = data.Select(d => new Owner { Name = d.Name });
+        var owners = data
+            .Select(d => new Owner { Name = d.Name })
+            .Where(d =>
+            {
+                var vc = new ValidationContext(d);
+                var errorResults = new List<ValidationResult>();
+                return Validator.TryValidateObject(d, vc, errorResults);
+            });
         await _repo.AddOwners(owners);
-
         return true;
     }
 }

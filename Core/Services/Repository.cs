@@ -17,8 +17,15 @@ public class Repository : IRepository
     public async Task AddOwners(IEnumerable<Owner> owners)
     {
         using var scope = _serviceScopeFactory.CreateScope();
-        using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>());
-        await context.Owners.AddRangeAsync(owners);
+        using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>()); a
+        foreach (var owner in owners)
+        {
+            if ((await context.Owners.FirstOrDefaultAsync(o => o.Name == owner.Name) == null))
+            {
+                await context.Owners.AddAsync(owner);
+            }
+        }
         await context.SaveChangesAsync();
+
     }
 }
