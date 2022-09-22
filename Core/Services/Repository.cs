@@ -1,28 +1,34 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Models;
 
 namespace Services;
 
 public class Repository : IRepository
 {
-    IServiceProvider _serviceProvider;
     IServiceScopeFactory _serviceScopeFactory;
-    public Repository(IServiceProvider serviceProvider, IServiceScopeFactory serviceScopeFactory)
+    ILogger<Repository> _logger;
+
+    public Repository(ILogger<Repository> logger, IServiceScopeFactory serviceScopeFactory)
     {
-        _serviceProvider = serviceProvider;
+        _logger = logger;
         _serviceScopeFactory = serviceScopeFactory;
     }
 
     public async Task AddOwners(IEnumerable<Owner> owners)
     {
         using var scope = _serviceScopeFactory.CreateScope();
-        using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>()); a
+        using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>());
         foreach (var owner in owners)
         {
-            if ((await context.Owners.FirstOrDefaultAsync(o => o.Name == owner.Name) == null))
+            try
             {
                 await context.Owners.AddAsync(owner);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogInformation(ex, $"Owner exists {owner.Name}");
             }
         }
         await context.SaveChangesAsync();
