@@ -32,7 +32,14 @@ public class FillDataService : IFillDataService
                 var errorResults = new List<ValidationResult>();
                 return Validator.TryValidateObject(d, vc, errorResults);
             });
-        await _repo.AddOwners(owners);
+        foreach (var owner in owners)
+        {
+            var isOwnerExist = await _repo.IsOwnerExist(owner.Name);
+            if (!isOwnerExist)
+            {
+                await _repo.AddOwner(owner);
+            }
+        }
         return true;
     }
 }

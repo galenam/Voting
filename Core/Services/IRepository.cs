@@ -4,5 +4,6 @@ namespace Services;
 
 public interface IRepository
 {
-    Task AddOwners(IEnumerable<Owner> owners);
+    Task AddOwner(Owner owner);
+    Task<bool> IsOwnerExist(string ownerName);
 }

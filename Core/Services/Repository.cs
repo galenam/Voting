@@ -16,22 +16,36 @@ public class Repository : IRepository
         _serviceScopeFactory = serviceScopeFactory;
     }
 
-    public async Task AddOwners(IEnumerable<Owner> owners)
+    public async Task AddOwner(Owner owner)
     {
         using var scope = _serviceScopeFactory.CreateScope();
         using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>());
-        foreach (var owner in owners)
+
+        try
         {
-            try
-            {
-                await context.Owners.AddAsync(owner);
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogInformation(ex, $"Owner exists {owner.Name}");
-            }
+            await context.Owners.AddAsync(owner);
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogInformation(ex, $"Owner exists {owner.Name}");
         }
         await context.SaveChangesAsync();
 
+    }
+
+    public async Task<bool> IsOwnerExist(string ownerName)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>());
+
+        try
+        {
+            return await context.Owners.FirstOrDefaultAsync(o => o.Name.ToLower() == ownerName.ToLower()) != null;
+        }
+        catch (DbUpdateException ex)
+        {
+            _logger.LogInformation(ex, $"Owner get error {ownerName}");
+        }
+        return true;
     }
 }
