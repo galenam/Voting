@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Mapster;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Models;
@@ -25,7 +26,6 @@ public class FillDataService : IFillDataService
     {
         var data = _dataService.Get();
         var owners = data
-            .Select(d => new Owner { Name = d.Name })
             .Where(d =>
             {
                 var vc = new ValidationContext(d);
@@ -34,11 +34,7 @@ public class FillDataService : IFillDataService
             });
         foreach (var owner in owners)
         {
-            var isOwnerExist = await _repo.IsOwnerExist(owner.Name);
-            if (!isOwnerExist)
-            {
-                await _repo.AddOwner(owner);
-            }
+            _repo.AddOwner(owner.Adapt<OwnerData>());
         }
         return true;
     }

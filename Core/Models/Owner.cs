@@ -11,5 +11,6 @@ public class Owner
     [Column("name")]
     [Required(AllowEmptyStrings = false)]
     public string Name { get; set; }
+    public OwnerFlat Flat { get; set; }
 }
 

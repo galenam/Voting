@@ -1,3 +1,4 @@
+using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -16,18 +17,23 @@ public class Repository : IRepository
         _serviceScopeFactory = serviceScopeFactory;
     }
 
-    public async Task AddOwner(Owner owner)
+    public async Task AddOwner(OwnerData ownerData)
     {
         using var scope = _serviceScopeFactory.CreateScope();
         using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>());
 
         try
         {
-            await context.Owners.AddAsync(owner);
+            if (!(await IsOwnerExist(ownerData.Name)))
+            {
+                var owner = ownerData.Adapt<Owner>();
+                owner.Flat = ownerData.Adapt<OwnerFlat>();
+                await context.Owners.AddAsync(ownerData.Adapt<Owner>());
+            }
         }
         catch (DbUpdateException ex)
         {
-            _logger.LogInformation(ex, $"Owner exists {owner.Name}");
+            _logger.LogInformation(ex, $"Owner exists {ownerData.Name}");
         }
         await context.SaveChangesAsync();
 

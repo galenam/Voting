@@ -23,15 +23,15 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
 
     public void Dispose() => _engine.Dispose();
 
-    public IEnumerable<OwnerData> Get()
+    public IEnumerable<OwnerDataDTO> Get()
     {
-        var ownerData = new List<OwnerData>();
+        var ownerData = new List<OwnerDataDTO>();
         try
         {
             var files = GetFileNames();
             if (!files.Any())
             {
-                return Enumerable.Empty<OwnerData>();
+                return Enumerable.Empty<OwnerDataDTO>();
             }
             foreach (var file in files)
             {
@@ -56,14 +56,14 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
         return ownerData;
     }
 
-    internal IList<OwnerData> GetOwnerDataFromStrings(IList<IList<string>> listOfList)
+    internal IList<OwnerDataDTO> GetOwnerDataFromStrings(IList<IList<string>> listOfList)
     {
         int indexFlatNumber = 0, indexSquareFlat = 0, indexLivingQuater = 0, indexFlatType = 0, indexOwnerName = 0,
                 indexSquareOfPart = 0, indexPercentOfTheWholeHouse = 0;
-        var owners = new List<OwnerData>();
+        var owners = new List<OwnerDataDTO>();
         do
         {
-            var ownerData = new OwnerData();
+            var ownerData = new OwnerDataDTO();
             if (indexFlatNumber < listOfList[0].Count)
             {
                 var flatNumberString = listOfList[0][indexFlatNumber].CleanIntString();
@@ -135,9 +135,9 @@ public class GetDataFromSourceService : IGetDataFromSourceService, IDisposable
         return owners;
     }
 
-    internal IList<OwnerData> GetOwnerData(string file)
+    internal IList<OwnerDataDTO> GetOwnerData(string file)
     {
-        IList<OwnerData> owners = new List<OwnerData>();
+        IList<OwnerDataDTO> owners = new List<OwnerDataDTO>();
 
         var listOfList = new List<IList<string>>();
         using var img = Pix.LoadFromFile(file);

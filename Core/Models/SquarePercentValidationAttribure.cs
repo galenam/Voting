@@ -6,9 +6,9 @@ sealed public class OwnerDataValidationAttribure : ValidationAttribute
 {
     public override bool IsValid(object value)
     {
-        if (value is OwnerData)
+        if (value is OwnerDataDTO)
         {
-            var oData = (OwnerData)value;
+            var oData = (OwnerDataDTO)value;
             return oData.PercentOfTheWholeHouse > 0 || oData.SquareOfPart > 0 && oData.SquareOfPart <= oData.FlatSquare;
         }
         else return true;

@@ -4,5 +4,5 @@ namespace Services;
 
 public interface IGetDataFromSourceService
 {
-    IEnumerable<OwnerData> Get();
+    IEnumerable<OwnerDataDTO> Get();
 }
