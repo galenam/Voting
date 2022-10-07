@@ -17,26 +17,25 @@ public class Repository : IRepository
         _serviceScopeFactory = serviceScopeFactory;
     }
 
-    public async Task AddOwner(OwnerData ownerData)
+    public async Task<bool> AddOwner(OwnerData ownerData)
     {
         using var scope = _serviceScopeFactory.CreateScope();
         using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>());
 
+        var result = false;
         try
         {
-            if (!(await IsOwnerExist(ownerData.Name)))
-            {
-                var owner = ownerData.Adapt<Owner>();
-                owner.Flat = ownerData.Adapt<OwnerFlat>();
-                await context.Owners.AddAsync(ownerData.Adapt<Owner>());
-            }
+            var owner = ownerData.Adapt<Owner>();
+            owner.Flat = ownerData.Adapt<OwnerFlat>();
+            await context.Owners.AddAsync(ownerData.Adapt<Owner>());
+            result = true;
         }
         catch (DbUpdateException ex)
         {
             _logger.LogInformation(ex, $"Owner exists {ownerData.Name}");
         }
         await context.SaveChangesAsync();
-
+        return result;
     }
 
     public async Task<bool> IsOwnerExist(string ownerName)

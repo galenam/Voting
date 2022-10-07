@@ -9,3 +9,4 @@ Core/appsettings.Development.json
 */.vs/*
 /.vs/*
 *.tiff
+.DS_Store
