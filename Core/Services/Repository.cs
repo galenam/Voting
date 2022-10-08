@@ -26,25 +26,17 @@ public class Repository : IRepository
         try
         {
             var owner = ownerData.Adapt<Owner>();
-<<<<<<< HEAD
+
             //owner.Flat = ownerData.Adapt<OwnerFlat>();
             //await context.Owners.AddAsync(ownerData.Adapt<Owner>());
             //await context.SaveChangesAsync();
-=======
-            owner.Flat = ownerData.Adapt<OwnerFlat>();
-            await context.Owners.AddAsync(ownerData.Adapt<Owner>());
             result = true;
->>>>>>> 26620bbd209e7b8035fa31f2823442b3a822a169
         }
         catch (DbUpdateException ex)
         {
             _logger.LogInformation(ex, $"Owner exists {ownerData.Name}");
         }
-<<<<<<< HEAD
-=======
-        await context.SaveChangesAsync();
         return result;
->>>>>>> 26620bbd209e7b8035fa31f2823442b3a822a169
     }
 
     public async Task<bool> IsOwnerExist(string ownerName)
