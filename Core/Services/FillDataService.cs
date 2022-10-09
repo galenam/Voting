@@ -34,7 +34,8 @@ public class FillDataService : IFillDataService
             });
         foreach (var owner in owners)
         {
-            _repo.AddOwner(owner.Adapt<OwnerData>());
+            await _repo.AddFlat(owner.Adapt<OwnerData>());
+            await _repo.AddOwner(owner.Adapt<OwnerData>());
         }
         return true;
     }

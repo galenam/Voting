@@ -6,4 +6,5 @@ public interface IRepository
 {
     Task<bool> AddOwner(OwnerData ownerData);
     Task<bool> IsOwnerExist(string ownerName);
+    Task<int> AddFlat(OwnerData ownerData);
 }

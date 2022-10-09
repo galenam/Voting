@@ -17,6 +17,26 @@ public class Repository : IRepository
         _serviceScopeFactory = serviceScopeFactory;
     }
 
+    public async Task<int> AddFlat(OwnerData ownerData)
+    {
+        using var scope = _serviceScopeFactory.CreateScope();
+        using var context = new ApplicationDBContext(scope.ServiceProvider.GetRequiredService<DbContextOptions<ApplicationDBContext>>());
+        int id = 0;
+        try
+        {
+            var flat = ownerData.Adapt<Flat>();
+            await context.Flats.AddAsync(flat);
+            await context.SaveChangesAsync();
+            id = flat.Id;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInformation(nameof(AddFlat), ex);
+        }
+        return id;
+    }
+
+
     public async Task<bool> AddOwner(OwnerData ownerData)
     {
         using var scope = _serviceScopeFactory.CreateScope();

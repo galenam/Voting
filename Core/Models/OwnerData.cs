@@ -10,4 +10,5 @@ public class OwnerData
     public string Name { get; set; }
     public decimal SquareOfPart { get; set; }
     public decimal PercentOfTheWholeHouse { get; set; }
+    public int FlatId { get; set; }
 }
