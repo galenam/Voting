@@ -1,10 +1,15 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Models;
 
 public class OwnerFlat
 {
+    [Column("id")]
     public int Id { get; set; }
+    [Column("owner_id")]
     public int OwnerId { get; set; }
-    public int FlatNumber { get; set; }
-    public decimal FlatSquare { get; set; }
-    public FlatType TypeOfFlat { get; set; }
+    [Column("square")]
+    public decimal SquareOfPart { get; set; }
+    [Column("flat_id")]
+    public int FlatId {get;set;}
 }

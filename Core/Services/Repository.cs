@@ -27,6 +27,7 @@ public class Repository : IRepository
             var flat = ownerData.Adapt<Flat>();
             await context.Flats.AddAsync(flat);
             await context.SaveChangesAsync();
+            ownerData.FlatId = flat.Id;
             id = flat.Id;
         }
         catch (Exception ex)
@@ -46,8 +47,7 @@ public class Repository : IRepository
         try
         {
             var owner = ownerData.Adapt<Owner>();
-
-            //owner.Flat = ownerData.Adapt<OwnerFlat>();
+            owner.Flat = ownerData.Adapt<OwnerFlat>();
             //await context.Owners.AddAsync(ownerData.Adapt<Owner>());
             //await context.SaveChangesAsync();
             result = true;
