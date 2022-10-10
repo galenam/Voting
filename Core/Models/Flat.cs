@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Models;
 
+[Table("flat")]
 public class Flat
 {
     [Column("id")]

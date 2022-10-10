@@ -34,8 +34,9 @@ public class FillDataService : IFillDataService
             });
         foreach (var owner in owners)
         {
-            await _repo.AddFlat(owner.Adapt<OwnerData>());
-            await _repo.AddOwner(owner.Adapt<OwnerData>());
+            var ownerData = owner.Adapt<OwnerData>();
+            ownerData.FlatId = await _repo.AddFlat(ownerData);
+            await _repo.AddOwner(ownerData);
         }
         return true;
     }
