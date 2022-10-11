@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Models;
 
 [AttributeUsage(AttributeTargets.Class, AllowMultiple = false)]
-sealed public class OwnerDataValidationAttribure : ValidationAttribute
+sealed public class SquarePercentValidationAttribure : ValidationAttribute
 {
     public override bool IsValid(object value)
     {
