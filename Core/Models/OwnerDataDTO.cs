@@ -4,7 +4,14 @@ namespace Models;
 public class OwnerDataDTO
 {
     public int FlatNumber { get; set; }
-    public decimal FlatSquare { get; set; }
+    private decimal flatSquare;
+    public decimal FlatSquare { get{return flatSquare;}
+    set{
+        if (value > 100) {flatSquare = value /100;}
+        else{
+            flatSquare = value;
+        }
+    } }
 
     public LivingQuater LivingQuaterType { get; set; }
     public FlatType TypeOfFlat { get; set; }
