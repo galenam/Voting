@@ -25,19 +25,29 @@ public class FillDataService : IFillDataService
     public async Task<bool> FillDb()
     {
         var data = _dataService.Get();
-        var owners = data
+
+        var groups = data
             .Where(d =>
             {
                 var vc = new ValidationContext(d);
                 var errorResults = new List<ValidationResult>();
                 return Validator.TryValidateObject(d, vc, errorResults);
-            });
+            }).GroupBy(d => d.FlatNumber);
+
+        foreach (var group in groups)
+        {
+            var ownerWithCorrectFlat = group.Where(g => g.FlatSquare > 0).First();
+            var ownerData = ownerWithCorrectFlat.Adapt<OwnerData>();
+            ownerData.FlatId = await _repo.AddFlat(ownerData);
+        }
+/*
         foreach (var owner in owners)
         {
             var ownerData = owner.Adapt<OwnerData>();
             ownerData.FlatId = await _repo.AddFlat(ownerData);
             await _repo.AddOwner(ownerData);
         }
+        */
         return true;
     }
 }

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Models;
 
 [SquarePercentValidationAttribure]
@@ -10,7 +12,7 @@ public class OwnerDataDTO
         get { return flatSquare; }
         set
         {
-            if (value > 100) { flatSquare = value / 100; }
+            if (value > Consts.LimitSquare) { flatSquare = value / Consts.LimitSquare; }
             else
             {
                 flatSquare = value;
@@ -27,7 +29,7 @@ public class OwnerDataDTO
         get { return squareOfPart; }
         set
         {
-            if (value > 100) { squareOfPart = value / 100; }
+            if (value > Consts.LimitSquare) { squareOfPart = value / Consts.LimitSquare; }
             else
             {
                 squareOfPart = value;
